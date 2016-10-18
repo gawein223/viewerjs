@@ -39,6 +39,7 @@
   var EVENT_HIDDEN = 'hidden';
   var EVENT_VIEW = 'view';
   var EVENT_VIEWED = 'viewed';
+  var EVENT_IMAGE_VIEWED = 'imgviewed';
 
   // RegExps
   var REGEXP_SUFFIX = /^(width|height|left|top|marginLeft|marginTop)$/;

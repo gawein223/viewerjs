@@ -5,7 +5,7 @@
  * Copyright (c) 2015-2016 Fengyuan Chen
  * Released under the MIT license
  *
- * Date: 2016-07-22T08:46:05.003Z
+ * Date: 2016-10-18T07:40:49.082Z
  */
 
 (function (global, factory) {
@@ -65,6 +65,7 @@
   var EVENT_HIDDEN = 'hidden';
   var EVENT_VIEW = 'view';
   var EVENT_VIEWED = 'viewed';
+  var EVENT_IMAGE_VIEWED = 'imgviewed';
 
   // RegExps
   var REGEXP_SUFFIX = /^(width|height|left|top|marginLeft|marginTop)$/;
@@ -433,17 +434,28 @@
 
   function getEvent(event) {
     var e = event || window.event;
+    var eventDoc;
     var doc;
+    var body;
 
     // Fix target property (IE8)
     if (!e.target) {
       e.target = e.srcElement || document;
     }
 
-    if (!isNumber(e.pageX)) {
-      doc = document.documentElement;
-      e.pageX = e.clientX + (window.scrollX || doc && doc.scrollLeft || 0) - (doc && doc.clientLeft || 0);
-      e.pageY = e.clientY + (window.scrollY || doc && doc.scrollTop || 0) - (doc && doc.clientTop || 0);
+    if (!isNumber(e.pageX) && isNumber(e.clientX)) {
+      eventDoc = event.target.ownerDocument || document;
+      doc = eventDoc.documentElement;
+      body = eventDoc.body;
+
+      e.pageX = e.clientX + (
+        ((doc && doc.scrollLeft) || (body && body.scrollLeft) || 0) -
+        ((doc && doc.clientLeft) || (body && body.clientLeft) || 0)
+      );
+      e.pageY = e.clientY + (
+        ((doc && doc.scrollTop) || (body && body.scrollTop) || 0) -
+        ((doc && doc.clientTop) || (body && body.clientTop) || 0)
+      );
     }
 
     return e;
@@ -659,6 +671,12 @@
         });
       } else {
         addListener(element, EVENT_CLICK, (_this._start = proxy(_this.start, _this)));
+      }
+
+      if (isFunction(options.imageviewed)) {
+        each(images, function (image) {
+          addListener(image, EVENT_IMAGE_VIEWED, options.imageviewed);
+        });
       }
     },
 
@@ -1364,7 +1382,6 @@
       }
 
       if (action) {
-        preventDefault(e);
         _this.action = action;
         _this.startX = touch ? touch.pageX : e.pageX;
         _this.startY = touch ? touch.pageY : e.pageY;
@@ -1421,8 +1438,6 @@
       var action = _this.action;
 
       if (action) {
-        preventDefault(e);
-
         if (action === 'move' && _this.options.transition) {
           addClass(_this.image, CLASS_TRANSITION);
         }
@@ -1598,6 +1613,8 @@
           _this.timeout = false;
         }, 1000);
       }
+
+      dispatchEvent(_this.images[index], EVENT_IMAGE_VIEWED);
 
       return _this;
     },
@@ -2342,7 +2359,7 @@
       var imageData = _this.imageData;
       var viewerData = _this.viewerData;
 
-      return imageData.left >= 0 && imageData.top >= 0 &&
+      return _this.length > 1 && imageData.left >= 0 && imageData.top >= 0 &&
         imageData.width <= viewerData.width &&
         imageData.height <= viewerData.height;
     }
@@ -2418,8 +2435,7 @@
     url: 'src',
 
     // Event shortcuts
-    build: null,
-    built: null,
+    ready: null,
     show: null,
     shown: null,
     hide: null,

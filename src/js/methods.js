@@ -166,6 +166,8 @@
         }, 1000);
       }
 
+      dispatchEvent(_this.images[index], EVENT_IMAGE_VIEWED);
+
       return _this;
     },
 

@@ -51,6 +51,12 @@
       } else {
         addListener(element, EVENT_CLICK, (_this._start = proxy(_this.start, _this)));
       }
+
+      if (isFunction(options.imageviewed)) {
+        each(images, function (image) {
+          addListener(image, EVENT_IMAGE_VIEWED, options.imageviewed);
+        });
+      }
     },
 
     ready: function () {
